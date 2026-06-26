@@ -1,0 +1,9 @@
+bitstruct
+codespell
+mock
+python-can
+textparser
+diskcache
+nala; python_version >= '3.6'
+argparse_addons
+matplotlib

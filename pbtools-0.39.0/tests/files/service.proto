@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package service;
+
+message Request {
+    string value = 1;
+}
+
+message Response {
+    string value = 1;
+}
+
+service MyService {
+    rpc Foo (Request) returns (Response);
+    rpc Bar (Request) returns (Response);
+    rpc Fie (Request) returns (Response) {}
+    rpc Fum (Request) returns (Response) {};
+    rpc Fam (stream Request) returns (stream Response) {};
+    rpc Fem (Request) returns (Response) {
+        option foo = BAR;
+        option bar = FIE;
+    };
+}

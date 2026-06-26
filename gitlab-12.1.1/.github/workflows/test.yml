@@ -1,0 +1,45 @@
+name: Test
+"on":
+  push:
+    branches:
+      - master
+      - renovate/**
+  pull_request:
+    types:
+      - opened
+      - synchronize
+jobs:
+  test_matrix:
+    strategy:
+      matrix:
+        node-version:
+          - 18.0.0
+          - 19
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: "${{ matrix.os }}"
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: "Use Node.js ${{ matrix.node-version }}"
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+        with:
+          node-version: "${{ matrix.node-version }}"
+          cache: npm
+      - run: npm ci
+      - name: Ensure dependencies are compatible with the version of node
+        run: npx ls-engines
+      - run: npm run test
+  test:
+    runs-on: ubuntu-latest
+    needs: test_matrix
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: "Use Node.js ${{ matrix.node-version }}"
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+        with:
+          node-version: "${{ matrix.node-version }}"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint

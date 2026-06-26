@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    types:
+    - opened
+    - synchronize
+    - reopened
+
+jobs:
+  ruby-versions:
+    uses: ruby/actions/.github/workflows/ruby_versions.yml@master
+    with:
+      engine: cruby-truffleruby
+      min_version: 2.5
+      versions: '["debug"]'
+
+  host:
+    needs: ruby-versions
+    name: ${{ matrix.os }} ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        - macos-latest
+        - macos-14
+        - windows-latest
+        ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+        include:
+        - { os: windows-latest , ruby: mingw }
+        - { os: windows-latest , ruby: mswin }
+        exclude:
+        - { os: macos-latest   , ruby: "2.5" }
+        - { os: macos-14  , ruby: "2.5" }
+        - { os: windows-latest , ruby: debug }
+        - { os: windows-latest , ruby: truffleruby }
+        - { os: windows-latest , ruby: truffleruby-head }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - run: bundle install
+
+      - run: rake compile
+
+      - run: rake test
+
+      - run: rake build
+
+      - run: gem install pkg/*.gem
+        if: ${{ matrix.ruby != 'debug' && ( matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' ) }}

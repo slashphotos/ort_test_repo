@@ -1,0 +1,27 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <!-- 
+    Workaround for https://github.com/NuGet/Home/issues/6754: cyclic dependency.
+  -->
+  <PropertyGroup>
+    <_ProjectDefinedPackageId>$(PackageId)</_ProjectDefinedPackageId>
+    <PackageId>*fake_packageid_for_project_$(MSBuildProjectName)*</PackageId>
+  </PropertyGroup>
+
+  <!-- 
+    Workaround for https://github.com/Microsoft/msbuild/issues/2527.
+  -->
+  <PropertyGroup>
+    <ImplicitlyExpandNETStandardFacades Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">false</ImplicitlyExpandNETStandardFacades>
+  </PropertyGroup>
+
+  <Target Name="_UpdatePackageId" BeforeTargets="$(PackDependsOn)" >
+    <PropertyGroup>
+      <PackageId>$(_ProjectDefinedPackageId)</PackageId>
+      <PackageId Condition="'$(PackageId)' == ''">$(AssemblyName)</PackageId>
+      <PackageId Condition="'$(PackageId)' == ''">$(MSBuildProjectName)</PackageId>
+    </PropertyGroup>
+  </Target>
+</Project>

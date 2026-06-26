@@ -1,0 +1,5 @@
+# Text segment size -O2/-O3 [bytes]
+
+pbtools      17484
+nanopb       21256
+flatbuffers  40017

@@ -1,0 +1,60 @@
+name: Benchmarking
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    types:
+    - opened
+    - synchronize
+    - reopened
+
+jobs:
+  ruby-versions:
+    uses: ruby/actions/.github/workflows/ruby_versions.yml@master
+    with:
+      engine: cruby
+      min_version: 2.7
+      versions: '["debug"]'
+
+  host:
+    needs: ruby-versions
+    name: ${{ matrix.os }} ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        - macos-latest
+        - macos-14
+        - windows-latest
+        ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+        include:
+        - { os: windows-latest , ruby: mingw }
+        - { os: windows-latest , ruby: mswin }
+        exclude:
+        - { os: windows-latest , ruby: debug }
+
+        # These are disabled due to the ambiguity of stringio
+        - { os: windows-latest , ruby: "3.0" }
+        - { os: windows-latest , ruby: "3.1" }
+        - { os: windows-latest , ruby: "3.2" }
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - name: Install dependencies
+      run: |
+        bundle install
+        gem install bigdecimal -v 3.0.0
+
+    - run: rake compile
+
+    - run: rake benchmark

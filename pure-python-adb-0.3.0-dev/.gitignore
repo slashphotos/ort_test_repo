@@ -1,0 +1,12 @@
+.idea
+__pycache__
+*.png
+.cache
+dist
+*.egg-info
+.repo
+.pytest_cache
+*.pyc
+venv
+test_result.xml
+.python-version

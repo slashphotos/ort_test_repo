@@ -1,0 +1,20 @@
+apply plugin: 'kotlin'
+
+dependencies {
+    compile project(':kotlin-stdlib-jdk8')
+    testCompile project(':kotlin-test:kotlin-test-junit')
+}
+
+sourceSets {
+    test.kotlin.srcDir 'test'
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        freeCompilerArgs = [
+                "-Xopt-in=kotlin.ExperimentalStdlibApi",
+                "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
+                "-Xopt-in=kotlin.time.ExperimentalTime",
+        ]
+    }
+}

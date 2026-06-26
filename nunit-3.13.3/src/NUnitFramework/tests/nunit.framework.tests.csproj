@@ -1,0 +1,85 @@
+﻿<Project>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT' and '$(TargetFramework)' != 'netcoreapp2.1'">
+    <UseWindowsFormsAndWPF>true</UseWindowsFormsAndWPF>
+    <DefineConstants>$(DefineConstants);UseWindowsFormsAndWPF</DefineConstants>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(UseWindowsFormsAndWPF)' != 'true'" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Condition="'$(UseWindowsFormsAndWPF)' == 'true'" />
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <TargetFrameworks>net35;net40;net45;net46;netcoreapp3.1;net5.0-windows</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <TargetFrameworks>net35;net46;netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>NUnit.Framework</RootNamespace>
+
+    <!-- Either NUnit or NUnitLite is not loading assemblies in a way that properly respects the
+    nunit.framework.tests.deps.json file. Maybe fixed by https://github.com/nunit/nunit/issues/3353? -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <!-- Microsoft.Bcl.Build workaround https://github.com/nunit/nunit/issues/2663 -->
+    <SkipValidatePackageReferences>true</SkipValidatePackageReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+    <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\framework\nunit.framework.csproj" />
+    <ProjectReference Include="..\slow-tests\slow-nunit-tests.csproj" />
+    <ProjectReference Include="..\testdata\nunit.testdata.csproj" />
+    <ProjectReference Include="..\mock-assembly\mock-assembly.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net35' and '$(TargetFramework)' != 'net40'">
+    <ProjectReference Include="..\testdata.fsharp\nunit.testdata.fsharp.fsproj" />
+
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
+    <PackageReference Include="Microsoft.Bcl" version="1.1.10" />
+    <PackageReference Include="Microsoft.Bcl.Async" version="1.0.168" />
+    <PackageReference Include="Microsoft.Bcl.Build" version="1.0.21" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net35'">
+    <PackageReference Include="System.ValueTuple" version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <Reference Include="System.Web" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Fakes.cs" Link="TestUtilities\Fakes.cs" />
+    <Compile Include="..\SchemaTestUtils.cs" Link="TestUtilities\SchemaTestUtils.cs" />
+    <Compile Include="..\TestBuilder.cs" Link="TestUtilities\TestBuilder.cs" />
+    <Compile Include="..\TestFile.cs" Link="TestUtilities\TestFile.cs" />
+    <Compile Include="..\TestSuiteExtensions.cs" Link="TestUtilities\TestSuiteExtensions.cs" />
+
+    <EmbeddedResource Include="TestImage1.jpg" />
+    <EmbeddedResource Include="TestImage2.jpg" />
+    <EmbeddedResource Include="TestText1.txt" />
+    <EmbeddedResource Include="TestText2.txt" />
+    <EmbeddedResource Include="TestListFile.txt" />
+    <EmbeddedResource Include="TestListFile2.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(UseWindowsFormsAndWPF)' != 'true'" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.WindowsDesktop" Condition="'$(UseWindowsFormsAndWPF)' == 'true'" />
+</Project>

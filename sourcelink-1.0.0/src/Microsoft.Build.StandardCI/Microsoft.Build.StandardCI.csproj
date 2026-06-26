@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <SuppressFinalPackageVersion>true</SuppressFinalPackageVersion>
+
+    <!-- Using an explicit nuspec file due to https://github.com/NuGet/Home/issues/6754 -->
+    <IsPackable>true</IsPackable>
+    <NuspecFile>$(MSBuildProjectName).nuspec</NuspecFile>
+    <NuspecBasePath>$(OutputPath)</NuspecBasePath>
+
+    <PackageDescription>Standard CI targets.</PackageDescription>
+    <PackageTags>Standard CI msbuild targets</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
+
+  <!-- Nothing to build, just create packages -->
+  <Target Name="Build">
+    <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True" />
+  </Target>
+
+  <Target Name="Test" />
+</Project>

@@ -1,0 +1,10 @@
+build
+dist
+pyreadline3.egg-info/
+__pycache__/
+*.bak
+MANIFEST
+*.*~
+*.pyc
+*.pyo
+.venv/

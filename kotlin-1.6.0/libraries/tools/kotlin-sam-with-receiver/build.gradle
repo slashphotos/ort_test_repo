@@ -1,0 +1,24 @@
+plugins {
+    id "gradle-plugin-common-configuration"
+    id "jps-compatible"
+}
+
+pill {
+    variant = 'FULL'
+}
+
+dependencies {
+    api project(':kotlin-gradle-plugin-api')
+    api project(':kotlin-gradle-plugin-model')
+
+    compileOnly project(':compiler')
+    compileOnly project(':kotlin-sam-with-receiver-compiler-plugin')
+
+    testCompile gradleApi()
+    testCompile "junit:junit:4.12"
+
+    embedded(project(":kotlin-sam-with-receiver-compiler-plugin")) { transitive = false }
+}
+
+ArtifactsKt.noDefaultJar(project)
+ArtifactsKt.runtimeJar(project, EmbeddableKt.rewriteDefaultJarDepsToShadedCompiler(project, {}), {})

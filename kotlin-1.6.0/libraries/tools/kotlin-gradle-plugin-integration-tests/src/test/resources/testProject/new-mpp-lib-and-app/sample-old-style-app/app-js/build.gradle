@@ -1,0 +1,5 @@
+apply plugin: 'kotlin2js'
+
+dependencies {
+	implementation 'com.example:sample-lib:1.0'
+}

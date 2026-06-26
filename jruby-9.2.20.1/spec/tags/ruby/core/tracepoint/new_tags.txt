@@ -1,0 +1,2 @@
+fails:TracePoint.new includes :line event when event is not specified
+fails:TracePoint.new includes multiple events when multiple event names are passed as params

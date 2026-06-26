@@ -1,0 +1,20 @@
+
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      APPVEYOR_JOB_NAME: "python3-x64-vs2019"
+      CIBW_BUILD: "cp312-win* cp311-win* cp310-win* cp39-win* cp38-win* cp37-win*"
+
+stack: python 3.11
+
+init:
+- cmd: set PATH=C:\Python311;C:\Python311\Scripts;%PATH%
+
+install: python -m pip install -U pip cibuildwheel==2.12.0
+
+build_script:
+  - python -m cibuildwheel --output-dir whl
+
+artifacts:
+  - path: whl/*.whl
+    name: Wheels

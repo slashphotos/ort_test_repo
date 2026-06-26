@@ -1,0 +1,15 @@
+include LICENSE
+include MANIFEST.in
+include README.rst
+include CHANGELOG.rst
+include pyproject.toml
+include requirements-dev.txt
+include tox.ini
+include doc/*
+
+recursive-include elementpath *
+recursive-include scripts *
+recursive-include tests *
+recursive-exclude tests/.mypy_cache *
+
+global-exclude *.py[cod]

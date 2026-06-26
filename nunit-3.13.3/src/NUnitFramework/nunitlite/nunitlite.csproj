@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net35;net40;net45;netstandard2.0</TargetFrameworks>
+    <RootNamespace>NUnitLite</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\framework\nunit.framework.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\CommonAssemblyInfo.cs" Link="Properties\CommonAssemblyInfo.cs" />
+    <Compile Include="..\FrameworkVersion.cs" Link="Properties\FrameworkVersion.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\framework\Schemas\*.xsd" LinkBase="Schemas" CopyToOutputDirectory="Always" />
+    <None Update="Schemas\*.xsd" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+    <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" />
+  </ItemGroup>
+
+</Project>

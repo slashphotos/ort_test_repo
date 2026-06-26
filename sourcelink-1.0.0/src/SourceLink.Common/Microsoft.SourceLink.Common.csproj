@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+
+    <!-- NuGet -->
+    <PackageDescription>MSBuild tasks providing source control information.</PackageDescription>
+    <PackageTags>MSBuild Tasks source control</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Common\Names.cs" Link="Common\Names.cs" />
+    <Compile Include="..\Common\PathUtilities.cs" Link="Common\PathUtilities.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.SourceLink.Common.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.SourceLink.Git.IntegrationTests" />
+  </ItemGroup>
+
+  <Import Project="$(RepositoryEngineeringDir)BuildTask.targets" />
+</Project>

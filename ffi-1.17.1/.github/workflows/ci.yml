@@ -1,0 +1,281 @@
+name: CI
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 3" # At 05:00 on Wednesday # https://crontab.guru/#0_5_*_*_3
+  push:
+    branches:
+      - master
+    tags:
+      - "*.*.*"
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - "*"
+permissions:
+  contents: read
+
+jobs:
+  system-libffi:
+    # Run on latest MRI with explicit selection of system or builtin libffi
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-13, windows-latest ]
+        extconfopts: [ --disable-system-libffi, --enable-system-libffi ]
+        extconfopts2: [ --disable-libffi-alloc, --enable-libffi-alloc ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
+
+    - if: matrix.os == 'macos-13'
+      run: brew install automake libffi pkg-config
+
+    - if: matrix.os == 'windows-latest' && matrix.extconfopts == '--enable-system-libffi'
+      shell: cmd
+      run: ridk exec sh -c "pacman --sync --refresh --needed --noconfirm  ${MINGW_PACKAGE_PREFIX}-libffi"
+
+    - run: bundle install
+    - run: bundle exec rake libffi
+    - run: bundle exec rake compile -- ${{ matrix.extconfopts }} ${{ matrix.extconfopts2 }}
+      env:
+        # work around misconfiguration of libffi on MacOS with homebrew
+        PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}:/usr/local/opt/libffi/lib/pkgconfig
+    - run: bundle exec rake test FFI_TEST_GC=true
+    - run: bundle exec rake types_conf && git --no-pager diff
+
+  specs:
+    # Run all specs on all ruby implementations
+    # Use automatic libffi selection on MRI
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-13, windows-latest ]
+        ruby: [ 2.5, 2.6, 2.7, 3.0, 3.1, 3.2, 3.3, 3.4, ruby-head, truffleruby-head, jruby-head ]
+        exclude:
+        - os: windows-latest
+          ruby: truffleruby-head
+        include:
+        - os: windows-latest
+          ruby: ruby-mswin
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - run: brew install automake
+      if: matrix.os == 'macos-13'
+
+    - run: bundle install
+    - run: bundle exec rake libffi
+    - run: bundle exec rake compile
+
+    - if: matrix.os == 'windows-latest'
+      # force the use of GNU make.exe on MSWIN platform for building libtest.dll
+      run: bundle exec rake test MAKE=make
+
+    - if: matrix.os != 'windows-latest'
+      run: bundle exec rake test FFI_TEST_GC=true
+
+    - run: bundle exec rake bench:all MAKE=make
+      if: ${{ matrix.ruby != 'truffleruby-head' && matrix.ruby != 'jruby-head' }}
+      env:
+        ITER: 10
+
+  gc_stress:
+    if: github.ref == 'refs/heads/master'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu ]
+        ruby: [ ruby-head ]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - run: bundle install
+    - run: bundle exec rake libffi
+    - name: Play dice if we run the tests or don't
+      id: run_it
+      run: ruby -e "puts 'RUN_IT=true' if rand < 0.1" >> $GITHUB_OUTPUT
+    - name: Run all tests with GC.stress=true
+      if: steps.run_it.outputs.RUN_IT == 'true'
+      run: bundle exec rake compile test FFI_GC_STRESS=true
+
+  rcd_build:
+    name: build fat binary gems
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - x86-mingw32
+          - x64-mingw-ucrt
+          - x64-mingw32
+          - x86-linux-gnu
+          - x86-linux-musl
+          - x86_64-linux-gnu
+          - x86_64-linux-musl
+          - x86_64-darwin
+          - arm64-darwin
+          - arm-linux-gnu
+          - arm-linux-musl
+          - aarch64-linux-gnu
+          - aarch64-linux-musl
+
+    runs-on: ubuntu-latest
+    env:
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Build ffi.gem
+        run: |
+          bundle install
+          bundle exec rake libffi
+          bundle exec rake gem:${PLATFORM}
+
+      - name: Upload binary gem
+        uses: actions/upload-artifact@v4
+        with:
+          name: gem-${{ matrix.platform }}
+          path: pkg/*-*-*.gem
+
+  job_test_native:
+    name: native test
+    needs: rcd_build
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-13
+          - macos-latest
+          - ubuntu-latest
+        ruby:
+          - "3.4"
+          - "3.3"
+          - "3.2"
+          - "3.1"
+          - "3.0"
+          - "2.7"
+          - "2.6"
+          - "2.5"
+        include:
+          - os: windows-latest
+            platform: x64-mingw32
+          - os: macos-13
+            platform: x86_64-darwin
+          - os: macos-latest
+            platform: arm64-darwin
+          - os: ubuntu-latest
+            platform: x86_64-linux-gnu
+          - os: windows-latest
+            ruby: "3.1"
+            platform: x64-mingw-ucrt
+          - os: windows-latest
+            ruby: "3.2"
+            platform: x64-mingw-ucrt
+          - os: windows-latest
+            ruby: "3.3"
+            platform: x64-mingw-ucrt
+          - os: windows-latest
+            ruby: "3.4"
+            platform: x64-mingw-ucrt
+        exclude:
+          - os: macos-latest
+            ruby: "2.5"
+          - os: windows-latest
+            ruby: "3.1"
+          - os: windows-latest
+            ruby: "3.2"
+          - os: windows-latest
+            ruby: "3.3"
+          - os: windows-latest
+            ruby: "3.4"
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - run: ruby --version
+      - name: Download gem-${{matrix.platform}}
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-${{ matrix.platform }}
+      - name: Update rubygems - ruby-3.0
+        if: matrix.ruby == '3.0'
+        run: |
+          gem install --no-doc rubygems-update -v 3.5.7
+          update_rubygems
+      - name: Update rubygems - ruby-2.6 to 2.7
+        if: matrix.ruby == '2.6' || matrix.ruby == '2.7'
+        run: |
+          gem install --no-doc rubygems-update -v 3.4.22
+          update_rubygems
+      - name: Update rubygems - ruby-2.5
+        if: matrix.ruby == '2.5'
+        run: |
+          gem install --no-doc rubygems-update -v 3.3.27
+          update_rubygems
+      - name: Install gem-${{matrix.platform}}
+        run: gem install --local *.gem --verbose
+      - name: Run tests
+        run: |
+          bundle install
+          ruby -rffi -S rake test
+
+  job_fat_binary_multiarch:
+    name: multiarch (${{matrix.platform}} on ${{matrix.from_image}} ${{matrix.image_platform}})
+    needs: rcd_build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - from_image: centos
+            image_platform: linux/x86_64
+            gem_platform: x86_64-linux-gnu
+            dockerfile: centos
+          - from_image: navikey/raspbian-bullseye
+            image_platform: linux/arm
+            gem_platform: arm-linux-gnu
+            dockerfile: debian
+          - from_image: ubuntu
+            image_platform: linux/arm64/v8
+            gem_platform: aarch64-linux-gnu
+            dockerfile: debian
+          - from_image: alpine
+            image_platform: linux/386
+            gem_platform: x86-linux-musl
+            dockerfile: alpine
+          - from_image: alpine
+            image_platform: linux/arm/v6
+            gem_platform: arm-linux-musl
+            dockerfile: alpine
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download gem-${{matrix.gem_platform}}
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-${{ matrix.gem_platform }}
+      - name: Build image and Run tests
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker build --rm --platform ${{matrix.image_platform}} --build-arg from_image=${{matrix.from_image}} -t ruby-test -f spec/env/Dockerfile.${{matrix.dockerfile}} .
+          docker run --rm -t --network=host -v `pwd`:/build ruby-test

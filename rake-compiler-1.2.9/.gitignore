@@ -1,0 +1,7 @@
+/.ruby-version
+/.rvmrc
+/Gemfile.lock
+/coverage/
+/doc/api/
+/pkg/
+/tmp/

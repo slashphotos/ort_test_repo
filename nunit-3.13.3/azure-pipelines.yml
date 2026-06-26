@@ -1,0 +1,95 @@
+pr: [ '*' ]
+
+trigger:
+  branches:
+    include: [ 'master', 'release', 'v3.13-dev' ]
+    exclude: [ 'refs/tags/*' ]
+
+jobs:
+
+- job: Windows
+  pool:
+    vmImage: windows-latest
+  steps:
+
+  - powershell: |
+     dotnet tool restore
+     dotnet cake --target=Test --test-run-name=Windows --configuration=Release
+    displayName: Build, test, and publish results
+
+  - powershell: dotnet cake --target=Package
+    displayName: Package
+
+  - task: PublishBuildArtifacts@1
+    displayName: Save package artifacts
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: Package
+
+  - task: PublishBuildArtifacts@1
+    displayName: Save test results artifacts
+    condition: always()
+    inputs:
+      PathtoPublish: test-results
+      ArtifactName: Test results (Windows)
+
+- job: Linux
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 5.0.202
+      performMultiLevelLookup: true
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core runtime 3.1'
+    inputs:
+      packageType: runtime
+      version: 3.1.x
+
+  - bash: sudo apt-get install fsharp
+    displayName: Install F# for Mono
+
+  - bash: |
+     dotnet tool restore
+     dotnet cake --target=Test --test-run-name=Linux --configuration=Release
+    displayName: Build, test, and publish results
+
+  - task: PublishBuildArtifacts@1
+    displayName: Save test results artifacts
+    condition: always()
+    inputs:
+      PathtoPublish: test-results
+      ArtifactName: Test results (Linux)
+
+- job: macOS
+  pool:
+    vmImage: macOS-latest
+  steps:
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 5.0.202
+      performMultiLevelLookup: true
+
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core runtime 3.1'
+    inputs:
+      packageType: runtime
+      version: 3.1.x
+
+  - bash: |
+     dotnet tool restore
+     dotnet cake --target=Test --test-run-name=macOS --configuration=Release
+    displayName: Build, test, and publish results
+
+  - task: PublishBuildArtifacts@1
+    displayName: Save test results artifacts
+    condition: always()
+    inputs:
+      PathtoPublish: test-results
+      ArtifactName: Test results (macOS)

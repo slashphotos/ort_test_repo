@@ -1,0 +1,42 @@
+// IGNORE_BACKEND_FIR: JVM_IR
+package test
+
+import test.C.E1
+import test.A.B.*
+import test.Obj.CInObj.Tt
+import test.Obj.foo
+
+private enum class C {
+    E1
+}
+
+class A {
+    private class B {
+        object C
+        class D
+    }
+
+    fun test() {
+        // Note: FIR resolve this to test/C instead of test/A.B.C
+        C
+        D()
+    }
+}
+
+private object Obj {
+    private class CInObj {
+        class Tt
+    }
+
+    fun foo() {
+        Tt()
+    }
+}
+
+fun box(): String {
+    E1
+    A().test()
+    foo()
+
+    return "OK"
+}

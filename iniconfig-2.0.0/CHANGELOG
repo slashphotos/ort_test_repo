@@ -1,0 +1,52 @@
+2.0.0 
+======
+
+* add support for Python 3.7-3.11
+* drop support for Python 2.6-3.6
+* add encoding argument defaulting to utf-8
+* inline and clarify type annotations
+* move parsing code from inline to extra file
+* add typing overloads for helper methods
+
+
+.. note::
+
+  major release due to the major changes in python versions supported + changes in packaging
+
+  the api is expected to be compatible
+
+
+1.1.1
+=====
+
+* fix version determination (thanks @florimondmanca)
+
+1.1.0
+=====
+
+- typing stubs (thanks @bluetech)
+- ci fixes
+
+1.0.1
+=====
+
+pytest 5+ support
+
+1.0
+===
+
+- re-sync with pylib codebase
+- add support for Python 3.4-3.5
+- drop support for Python 2.4-2.5, 3.2
+
+0.2
+===
+
+- added ability to ask "name in iniconfig", i.e. to check
+  if a section is contained.
+
+- fix bug in "name=value" parsing where value was "x=3"
+
+- allow for ': ' to delimit name=value pairs, so that e.g. .pypirc files
+  like http://docs.python.org/distutils/packageindex.html
+  can be successfully parsed

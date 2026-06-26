@@ -1,0 +1,7 @@
+# Encoding time -O2/-O3 [ms]
+
+pbtools      1457
+protobuf-c   1892
+google       2231
+nanopb       9580
+flatbuffers  2506

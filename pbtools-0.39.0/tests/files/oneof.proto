@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package oneof;
+
+enum Enum {
+    A = 0;
+    B = 1;
+}
+
+message Message {
+    oneof value {
+        int32 v1 = 1;
+        string v2 = 2;
+    };
+}
+
+message Message2 {
+    message Foo {
+        int32 bar = 55;
+    }
+
+    oneof oneof1 {
+        Foo v4 = 4;
+        bytes v5 = 5;
+        Enum v6 = 6;
+    };
+
+    oneof oneof2 {
+        bool v1 = 1;
+        Foo v2 = 2;
+        Message v3 = 3;
+    };
+}
+
+message Message3 {
+    message Foo {
+        oneof inner_oneof {
+            bool v1 = 1;
+            bytes v2 = 2;
+        };
+    }
+
+    message Bar {
+        repeated Foo foo = 1;
+    }
+
+    oneof oneof1 {
+        Bar v1 = 1;
+    };
+}

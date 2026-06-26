@@ -1,0 +1,35 @@
+name: Documentation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "docs/**"
+  push:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "docs/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  docs:
+    name: nox -s docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
+        name: Install Python
+        with:
+          python-version: "3.9"
+          cache: "pip"
+
+      - name: Build documentation
+        run: pipx run nox --error-on-missing-interpreters -s docs

@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Versioning" Version="$(NuGetVersioningVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCore)" />
+    <PackageReference Include="xunit.core" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.assert" Version="$(XunitVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_DotNetSdkBuildIInfoFile>BuildInfo.g.cs</_DotNetSdkBuildIInfoFile>
+  </PropertyGroup>
+
+  <Target Name="_GenerateSdkVersionAttribute" BeforeTargets="CoreCompile" Outputs="$(IntermediateOutputPath)$(_DotNetSdkBuildIInfoFile)">
+    <ItemGroup>
+      <_Attribute Include="TestUtilities.BuildInfoAttribute">
+        <_Parameter1>$(NETCoreSdkVersion)</_Parameter1>
+        <_Parameter2>$(ArtifactsShippingPackagesDir)</_Parameter2>
+        <_Parameter3>$(ArtifactsLogDir)</_Parameter3>
+      </_Attribute>
+    </ItemGroup>
+
+    <WriteCodeFragment AssemblyAttributes="@(_Attribute)" Language="$(Language)" OutputFile="$(IntermediateOutputPath)$(_DotNetSdkBuildIInfoFile)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
+  </Target>
+</Project>

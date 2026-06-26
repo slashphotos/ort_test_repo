@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "imported_duplicated_package.proto";
+
+package imported;
+
+enum ImportedEnum {
+    A = 0;
+    B = 1;
+}
+
+message ImportedMessage {
+    bool v1 = 1;
+    // From same package in imported_duplicated_package.proto. No
+    // package prefix needed.
+    ImportedDuplicatedPackageMessage v2 = 2;
+}
